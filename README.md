@@ -19,7 +19,6 @@ I tried to proof/disproof the following hypotheses;
 	  -But, these events are, in the majority, different to the most successful nation
 
   -There is a negative correlation between age and medals won
-  	
 	-This was attempted through calculating the correlation between these two variables
 
   -In 2016, women and men had an equal number of participants
