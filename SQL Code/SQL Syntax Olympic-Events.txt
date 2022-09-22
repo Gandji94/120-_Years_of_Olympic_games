@@ -1,0 +1,503 @@
+*/Getting the overall medal count for the different nations/*
+
+select
+	nationality.NOC as Nations,
+	sum(medals_won) as all_time_medals,
+	sum(gold) as gold_medals,
+	sum(silver) as silver_medals,
+	sum(bronze) as bronze_medals
+from(
+	select
+		Year,
+		NOC_ID,
+		Sport_ID,
+		count(distinct Medal_ID) as medals_won,
+		count(distinct case when Medal_ID=1 then 1 else null end) as gold,
+		count(distinct case when Medal_ID=2 then 1 else null end) as silver,
+		count(distinct case when Medal_ID=3 then 1 else null end) as bronze
+		from results
+		where Medal_ID !=4
+		group by Year, NOC_ID, Sport_ID order by Year
+) as medals1
+	left join nationality
+		on medals1.NOC_ID=nationality.NOC_ID
+group by nationality.NOC
+order by sum(medals_won) desc limit 10;
+
+
+*/Medals of the US/*
+
+Select
+  Sport,
+	(sum(gold_medal)+sum(silver_medal)+sum(bronze_medal)) as total_medals,
+	sum(gold_medal) as number_of_gold_medals,
+	sum(silver_medal) as number_of_silver_medals,
+	sum(bronze_medal) as number_of_bronze_medals
+from (
+	Select
+		results.Year,
+		sports.Sport,
+		results.NOC_ID,
+		results.Medal_ID,
+		count(distinct case when results.Medal_ID=1 then 1 else null end) as gold_medal,
+		count(distinct case when results.Medal_ID=2 then 1 else null end) as silver_medal,
+		count(distinct case when results.Medal_ID=3 then 1 else null end) as bronze_medal
+	from results
+		left join sports
+			on results.Sport_ID=sports.Sport_ID
+	where NOC_ID=217
+	group by 1,2,3,4
+	order by results.Year
+) as usa_m
+where Medal_ID != 4
+group by Sport
+order by (sum(gold_medal)+sum(silver_medal)+sum(bronze_medal)) desc;
+
+
+*/Difference in Numbers between Male and Female/*
+
+Select
+  Year,
+	Games,
+	sum(male_medal_count) as events_men,
+	sum(female_medal_count) as events_women,
+	(sum(female_medal_count) - sum(male_medal_count)) as difference_between_men_women
+from (
+	Select
+		results.Year,
+		olympic_games.Games,
+		count(distinct case when results.Sex_ID=1 then results.Sport_ID else null end) as male_medal_count,
+		count(distinct case when results.Sex_ID=2 then results.Sport_ID else null end) as female_medal_count
+	from results
+	left join olympic_games
+		on results.Games_ID=olympic_games.Games_ID
+	group by results.Year, olympic_games.Games
+) as men_women
+group by Year, Games;
+
+
+*/Medal Summer Games/*
+
+select
+	nationality.NOC,
+	Sum(medals_won) as summer_medals
+from (
+	Select
+		Year,
+		NOC_ID,
+		Sport_ID,
+		count(distinct Medal_ID) as medals_won
+	from results
+	where Medal_ID in (1,2,3)
+	group by 1,2,3
+	order by Year
+) as comp_sum
+	left join nationality
+		on comp_sum.NOC_ID=nationality.NOC_ID
+Where Year in (2004, 2008, 2012, 2016)
+group by 1
+order by Sum(medals_won) desc limit 10;
+
+
+*/Gold Medals Summer Games/*
+
+Select
+	nationality.NOC,
+	Sum(medals_won) as summer_gold_medals
+from (
+	Select
+		Year,
+		NOC_ID,
+		Sport_ID,
+		count(distinct Medal_ID) as medals_won
+	from results
+	where Medal_ID = 1
+	group by 1,2,3
+	order by Year
+) as comp_gold
+	left join nationality
+		on comp_gold.NOC_ID=nationality.NOC_ID
+Where Year in (2004, 2008, 2012, 2016)
+group by 1
+order by Sum(medals_won) desc limit 10;
+
+
+*/Medal Winter Games/*
+
+Select
+	nationality.NOC,
+	Sum(medals_won) as winter_medals
+from (
+	Select
+		Year,
+		NOC_ID,
+		Sport_ID,
+		count(distinct Medal_ID) as medals_won
+	from results
+	where Medal_ID in (1,2,3)
+	group by 1,2,3
+	order by Year
+) as comp_winter
+	left join nationality
+		on comp_winter.NOC_ID=nationality.NOC_ID
+Where Year in (2002, 2006, 2010, 2014)
+group by 1
+order by Sum(medals_won) desc limit 10;
+
+
+*/Gold Medals Winter Games/*
+
+Select
+	nationality.NOC,
+	Sum(medals_won) as winter_gold_medals
+from (
+	Select
+		Year,
+		NOC_ID,
+		Sport_ID,
+		count(distinct Medal_ID) as medals_won
+	from results
+	where Medal_ID = 1
+	group by 1,2,3
+	order by Year
+) as comp_winter_gold
+	left join nationality
+		on comp_winter_gold.NOC_ID=nationality.NOC_ID
+Where Year in (2002, 2006, 2010, 2014)
+group by 1
+order by Sum(medals_won) desc limit 10;
+
+
+*/China Medal 2004-2016/*
+
+Select
+	Sport,
+	(sum(gold_medal)+sum(silver_medal)+sum(bronze_medal)) as total_medals,
+	sum(gold_medal) as number_of_gold_medals,
+	sum(silver_medal) as number_of_silver_medals,
+	sum(bronze_medal) as number_of_bronze_medals
+from (
+	Select
+		results.Year,
+		sports.Sport,
+		sports.Sport_ID,
+		results.NOC_ID,
+		results.Medal_ID,
+		count(distinct case when results.Medal_ID=1 then 1 else null end) as gold_medal,
+		count(distinct case when results.Medal_ID=2 then 1 else null end) as silver_medal,
+		count(distinct case when results.Medal_ID=3 then 1 else null end) as bronze_medal
+	from results
+		left join sports
+			on results.Sport_ID=sports.Sport_ID
+	where NOC_ID=42
+	and results.Season_ID != 2
+	and results.Year in (2004, 2008, 2012, 2016)
+	group by 1,2,3,4,5
+	order by results.Year
+) as china_m
+where Medal_ID != 4
+group by 1
+order by (sum(gold_medal)+sum(silver_medal)+sum(bronze_medal)) desc;
+
+
+*/USA Medal 2004-2016/*
+
+Select
+	Sport,
+	(sum(gold_medal)+sum(silver_medal)+sum(bronze_medal)) as total_medals,
+	sum(gold_medal) as number_of_gold_medals,
+	sum(silver_medal) as number_of_silver_medals,
+	sum(bronze_medal) as number_of_bronze_medals
+from (
+	Select
+		results.Year,
+		sports.Sport,
+		results.NOC_ID,
+		results.Medal_ID,
+		count(distinct case when results.Medal_ID=1 then 1 else null end) as gold_medal,
+		count(distinct case when results.Medal_ID=2 then 1 else null end) as silver_medal,
+		count(distinct case when results.Medal_ID=3 then 1 else null end) as bronze_medal
+	from results
+		left join sports
+			on results.Sport_ID=sports.Sport_ID
+	where NOC_ID=217
+	and results.Year in (2004, 2008, 2012, 2016)
+	and results.Season_ID!=2
+	group by 1,2,3,4
+	order by results.Year
+) as usa_m_04_16
+where Medal_ID != 4
+group by 1
+order by (sum(gold_medal)+sum(silver_medal)+sum(bronze_medal)) desc;
+
+
+*/Most Successful Athlete in Olympic History/*
+
+select
+	athlete.Name,
+  nationality.NOC,
+	athlete.Sex,
+	count(results.Medal_ID) as number_of_medals,
+	count(case when results.Medal_ID=1 then 1 else null end) as number_of_gold_medals,
+	count(case when results.Medal_ID=2 then 1 else null end) as number_of_silver_medals,
+	count(case when results.Medal_ID=3 then 1 else null end) as number_of_bronze_medals
+from results
+left join athlete
+	on results.Athlete_ID=athlete.Athlete_ID
+left join nationality
+	on results.NOC_ID=nationality.NOC_ID
+where results.Medal_ID in (1,2,3)
+group by 1,2,3
+order by count(results.Medal_ID) desc limit 5;
+
+
+*/Most successful Gold winning athlete/*
+
+select
+	athlete.Name,
+  nationality.NOC,
+	athlete.Sex,
+	count(results.Medal_ID) as number_of_gold_medals
+from results
+	left join athlete
+		on results.Athlete_ID=athlete.Athlete_ID
+	left join nationality
+		on results.NOC_ID=nationality.NOC_ID
+where results.Medal_ID=1
+group by 1,2,3
+order by count(results.Medal_ID) desc limit 5;
+
+
+*/CVR overall Medals of the most successful athletes/*
+
+Select
+	athlete.Name,
+  nationality.NOC,
+	athlete.Sex,
+	count(case when Medal_ID!=4 then 1 else null end) as won_medal,
+	count(Medal_ID) as participation,
+	round(count(case when Medal_ID!=4 then 1 else null end)/count(Medal_ID),2) as CVR_Overall
+from results
+	left join athlete
+		on results.Athlete_ID=athlete.Athlete_ID
+	left join nationality
+		on results.NOC_ID=nationality.NOC_ID
+where athlete.Athlete_ID in (86767, 73148, 93760, 16196, 29505)
+and results.Sport_ID in (645, 640, 638, 632, 646, 644, 645, 652, 639, 591, 589, 592, 590, 376, 377, 369, 366, 374, 368, 365, 380, 389, 388, 387, 385, 384, 386, 390, 326, 327, 333, 336, 325)
+group by 1,2,3;
+
+
+*/CVR Gold Medals of most successful athletes/*
+
+Select
+	athlete.Name,
+  nationality.NOC,
+	athlete.Sex,
+	count(case when Medal_ID=1 then 1 else null end) as won_medal,
+	count(Medal_ID) as total,
+	round(count(case when Medal_ID=1 then 1 else null end)/count(Medal_ID),2) as CVR_Gold
+from results
+	left join athlete
+		on results.Athlete_ID=athlete.Athlete_ID
+	left join nationality
+		on results.NOC_ID=nationality.NOC_ID
+where athlete.Athlete_ID in (86767, 73148, 93760, 16196, 29505)
+and results.Sport_ID in (645, 640, 638, 632, 646, 644, 645, 652, 639, 591, 589, 592, 590, 376, 377, 369, 366, 374, 368, 365, 380, 389, 388, 387, 385, 384, 386, 390, 326, 327, 333, 336, 325)
+group by 1,2,3;
+
+
+*/ Conversion Rate of most successful gold winnig athletes/*
+select
+	athlete.Name,
+  nationality.NOC,
+	athlete.Sex,
+	count(case when results.Medal_ID=1 then 1 else null end) as gold_medals,
+	count(results.Medal_ID) as participation,
+	round(count(case when results.Medal_ID=1 then 1 else null end)/count(results.Medal_ID),2)
+from results
+	inner join athlete
+		on results.Athlete_ID=athlete.Athlete_ID
+	inner join nationality
+		on results.NOC_ID=nationality.NOC_ID
+group by 1,2,3
+having count(case when results.Medal_ID=1 then 1 else null end) >0
+order by count(case when results.Medal_ID=1 then 1 else null end) desc limit 5
+
+
+*/Age distribution of participants/*
+
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79,
+	count(case when Age >=80 and Age <=89 then Medal_ID else null end) as age_80_89,
+	count(case when Age >=90 and Age <=99 then Medal_ID else null end) as age_90_99
+from results;
+
+
+*/Age Groups of Medal winning athletes/*
+
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79
+from results
+where Medal_ID in (1,2,3);
+
+
+*/Age group distribution of Gold Medals/*
+
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79
+from results
+where Medal_ID=1;
+
+
+*/Age group distribution of Silver Medals/*
+
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79
+from results
+where Medal_ID=2;
+
+
+*/Age group distribution of Bronze Medals/*
+
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79
+from results
+where Medal_ID=3;
+
+
+*/Age group distribution between Men and Women/*
+
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79
+from results
+where Sex_ID=1
+and Medal_ID in (1,2,3)
+UNION
+Select
+	count(case when Age >=10 and Age <=19 then Medal_ID else null end) as age_10_19,
+	count(case when Age >=20 and Age <=29 then Medal_ID else null end) as age_20_29,
+	count(case when Age >=30 and Age <=39 then Medal_ID else null end) as age_30_39,
+	count(case when Age >=40 and Age <=49 then Medal_ID else null end) as age_40_49,
+	count(case when Age >=50 and Age <=59 then Medal_ID else null end) as age_50_59,
+	count(case when Age >=60 and Age <=69 then Medal_ID else null end) as age_60_69,
+	count(case when Age >=70 and Age <=79 then Medal_ID else null end) as age_70_79
+from results
+where Sex_ID=2
+and Medal_ID in (1,2,3);
+
+
+*/Correlation between Age and all types of Medals won/*
+
+Select
+	Athlete_ID,
+	Age,
+	medals_won,
+	gold_won,
+	silver_won,
+	bronze_won
+from (
+select
+	Athlete_ID,
+	Age,
+	count(case when Medal_ID!=4 then 1 else null end) as medals_won,
+	count(case when Medal_ID=1 then 1 else null end) as gold_won,
+	count(case when Medal_ID=2 then 1 else null end) as silver_won,
+	count(case when Medal_ID=3 then 1 else null end) as bronze_won
+from results
+where Medal_ID in (1,2,3)
+and Season_ID=1
+group by 1,2
+) as dis_age_med
+where medals_won > 0;
+
+
+*/Impact of of the ffill function/*
+
+Select
+	Height,
+	Weight,
+    	count(Height),
+	count(Weight)
+from results
+where Year between 1920 and 1960
+group by 1,2
+order by count(Height) desc;
+
+
+*/Development of Weight and Height over 120 Years/*
+
+select
+	results.Year,
+	avg(results.Height) as Height,
+	avg(results.Weight) as Weight
+from results
+	left join sports
+		on results.Sport_ID=sports.Sport_ID
+where Season_ID=1
+and Weight!=176
+and Weight!=67
+group by 1;
+
+
+*/Development of Weight and Height of Male athletes over 120 Years/*
+
+select
+	results.Year,
+	avg(results.Height) as Height,
+	avg(results.Weight) as Weight
+from results
+where results.Sex_ID=1
+and Season_ID=1
+and Weight!=176
+and Weight!=67
+group by 1;
+
+
+*/Development of Weight and Height of Female athletes over 120 Years/*
+
+select
+	results.Year,
+	avg(results.Height) as Height,
+	avg(results.Weight) as Weight
+from results
+where results.Sex_ID=2
+and Season_ID=1
+and Weight!=176
+and Weight!=67
+group by 1;
